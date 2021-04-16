@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
+    <link rel="stylesheet" type="text/css" href="./app.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet" />
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC-wPhSditxIw4NCaDAJBmIQyekLLnsJII&libraries=geometry"></script>
+    <link rel="stylesheet" href="Control.Geocoder.css" />
+    <script src="Control.Geocoder.js"></script>
+    <script src="OverPassLayer.bundle.js"></script>
+    <script src="osmtogeojson.js"></script>
+    <link rel="stylesheet" href="OverPassLayer.css">
+    <script src="FileSaver.js"></script>
+    <title>Address Reverse geocoder</title>
+
+</head>
+
+<body>
+    <div class="tabs">
+        <span id="route-tab" class="active">Address Reverse geocoder</span>
+    </div>
+    <div id="route">
+        <!-- <h1 class="title">Traveling Salesman</h1> -->
+        <div class="instructions">
+            <h4>
+                <p>Step 1: Click on the polygon, rectangle or cirlce tool and draw an area on the map.
+                    <br></p>
+                <p>Or load geometry from a geojson file
+                    <button onclick="openFile(dispFile)">Open a file</button>
+                    <pre id="contents"></pre>
+                </p>
+
+            </h4>
+
+            <h4>
+                Step 2: Results are shown below.
+            </h4>
+            <div id="results" style="overflow-y:auto;">
+                <table id='resultsTbl'>
+
+                </table>
+
+            </div>
+
+            <h4>
+                Step 3: Save the area as geojson file<br>
+                <button onclick="saveFile()">Save Area With Results</button>
+            </h4>
+        </div>
+
+        <!-- <div id="map"></div> -->
+        <div id="map"></div>
+    </div>
+    <div id="paint">
+        <canvas id="canvas" width="1000" height="500"></canvas>
+
+        <button id="run">Draw</button>
+    </div>
+</body>
+<script src='prototype.js'></script>
+
+
+</html>
