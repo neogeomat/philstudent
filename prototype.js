@@ -57,60 +57,53 @@ var geocoder = L.Control.geocoder({
     defaultMarkGeocode: false,
 });
 geocoder.options.geocoder = L.Control.Geocoder.photon();
+const Photon_adddress_structure = ['housenumber', 'type', 'street', 'locality', 'city', 'county', 'country'];
 // geocoder.options.geocoder.options["reverseQueryParams"] = { format: "jsonv2" }; // only for nominatim
 var opl = new L.OverPassLayer({
     minZoom: 20,
     debug: true,
     // query: 'way[building]({{bbox}});(._;>;);out;>;',
-    query: 'node(1);',
+    // query: 'node(1);',
+    minZoomIndicatorEnabled: false,
     noInitialRequest: true,
     beforeRequest: function() {
         // debugger;
+        map.spin(true);
     },
+    onError: function(xhr) { map.spin(false); },
+    onTimeout: function(xhr) { map.spin(false); },
     onSuccess: function(data) {
-        console.log(data);
-        console.log(osmtogeojson(data));
+        map.spin(false);
+        // console.log(data);
+        // console.log(osmtogeojson(data));
         ol.addData(osmtogeojson(data, {
             flatProperties: true
         }));
         $("#resultsTbl")[0].innerHTML = "";
-        $("#resultsTbl").append($("<tr>").append($("<td>Latitude</td><td>Longitude</td><td>Address</td>")));
+
+        let header = "<td>Latitude</td><td>Longitude</td>";
+        Photon_adddress_structure.forEach(entry => { header += `<td>${entry}</td>` });
+        $("#resultsTbl").append($("<tr>").append(header));
+
         ol.getLayers().forEach(l => {
             // console.log(l.feature.properties);
 
             let osmid = l.feature.id.split('/');
-            // sleep(1000).then(() => {
-            //     $.getJSON(`http://nominatim.openstreetmap.org/lookup?osm_ids=${osmid[0][0].toUpperCase()}${osmid[1]}&format=jsonv2`, { addressdetails: 1, email: "amrit.im@gmail.com" }).done(
-
-            //         function(json) {
-            //             let row = "<tr>";
-            //             row += "<td>" + l.getCenter().lat.toFixed(6) + "</td><td>" + l.getCenter().lng.toFixed(6) + "</td>";
-            //             for (item in json[0].address) {
-            //                 row += "<td>" + json[0].address[item] + "</td>"
-            //                 console.log(json[0].address[item]);
-            //             }
-            //             row += "</tr>";
-
-            //             $("#resultsTbl").append(row);
-            //             console.log(json);
-            //             debugger;
-            //         });
-            // });
             sleep(1000).then(() => {
-                const Photon_adddress_structure = ['housenumber', 'type', 'street', 'locality', 'city', 'county', 'country'];
                 geocoder.options.geocoder.reverse(l.getCenter(), 90000000, response => {
                     let row = "<tr>";
                     row += "<td>" + l.getCenter().lat.toFixed(6) + "</td><td>" + l.getCenter().lng.toFixed(6) + "</td>";
                     for (item in Photon_adddress_structure) {
                         row += "<td>" + response[0].properties[Photon_adddress_structure[item]] + "</td>"
-                        console.log(response[0].properties[Photon_adddress_structure[item]]);
+                            // console.log(response[0].properties[Photon_adddress_structure[item]]);
                     }
                     row += "</tr>";
 
                     $("#resultsTbl").append(row);
-                    console.log(response);
+                    l.geocodeResult = response;
                     // console.log(response);
-                    debugger;
+                    // console.log(response);
+                    // debugger;
                 });
             });
             // debugger;
@@ -121,30 +114,23 @@ var opl = new L.OverPassLayer({
 
 map.addLayer(opl);
 
-function getPopn(layer) {
-    var polygonStr = layer.getLatLngs()[0].map(p => '(' + p.lat + ',' + p.lng + ')').toString();
-    $.get(`https://public.opendatasoft.com/api/records/1.0/search/?dataset=worldcitiespop&q=&sort=population&facet=country&geofilter.polygon=${polygonStr}`, function(data) {
-        console.log(data);
-        total_popn = 0;
-        $("#resultsTbl")[0].innerHTML = "";
-        $("#resultsTbl").append($("<tr>").append($("<td>City</td><td>Population</td>")));
-        data.records.forEach(r => {
-            console.log(r.fields.city)
-            if (r.fields.population != null) {
-                $("#resultsTbl").append("<tr><td>" + r.fields.city + "</td><td>" + r.fields.population + "</td></tr>");
-                // marker = L.marker(L.GeoJSON.coordsToLatLng(r.geometry.coordinates));
-                // marker.bindPopup(r.fields.city + "<br>" + r.fields.population);
-                // drawnItems.addLayer(marker);
-                total_popn += r.fields.population;
-            }
-        });
-        layer.bindTooltip("Population:" + total_popn, { permanent: true, direction: "center", opacity: 0.5 })
-    })
-}
-
 function saveFile() {
-    var blob = new Blob([JSON.stringify(drawnItems.toGeoJSON())], { type: "text/plain;charset=utf-8" });
-    saveAs(blob, "test.geojson");
+    let items = [];
+    ol.getLayers().forEach(l => {
+        items.push(Object.assign(l.geocodeResult[0].properties, l.geocodeResult[0].center));
+    });
+    const replacer = (key, value) => value === null ? '' : value; // specify how you want to handle null values here
+    // const header = Object.keys(items[0])
+    header = Photon_adddress_structure;
+    header = header.concat(Object.keys(ol.getLayers()[0].geocodeResult[0].center));
+    const csv = [
+        header.join(','), // header row first
+        ...items.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','))
+    ].join('\r\n')
+
+    console.log(csv);
+    var blob = new Blob([csv], { type: "text/plain;charset=utf-8" });
+    saveAs(blob, "test.csv");
 }
 
 function dispFile(contents) {

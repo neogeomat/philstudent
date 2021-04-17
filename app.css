@@ -6,7 +6,7 @@
 }
 
 #map {
-    width: calc(100% - 400px);
+    width: calc(100% - 50%);
     margin: 0 auto;
     display: inline-block;
     height: 100vh;
@@ -78,7 +78,7 @@ button {
 .instructions {
     display: inline-flex;
     flex-direction: column;
-    width: 400px;
+    width: 50%;
     vertical-align: top;
     background: black;
     color: white;
