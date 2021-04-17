@@ -41,10 +41,11 @@ map.on(L.Draw.Event.CREATED, function(e) {
         // console.log(p);
         bboxStr += `${p.lat.toFixed(6)} ${p.lng.toFixed(6)} `;
     });
-    debugger;
+    // debugger;
     bboxStr = bboxStr.slice(0, -1) + "'";
 
     opl.setQuery('way[building](' + bboxStr + ');(._;>;);out;>;');
+    opl._sendRequest(drawnItems.getBounds());
 });
 
 var ol = new L.geoJSON();
@@ -53,9 +54,10 @@ ol.addTo(map);
 var geocoder = L.Control.geocoder({
     collapsed: false,
     showResultIcons: true,
-    defaultMarkGeocode: false
+    defaultMarkGeocode: false,
 });
-geocoder.options.geocoder.options["reverseQueryParams"] = { format: "jsonv2" };
+geocoder.options.geocoder = L.Control.Geocoder.photon();
+// geocoder.options.geocoder.options["reverseQueryParams"] = { format: "jsonv2" }; // only for nominatim
 var opl = new L.OverPassLayer({
     minZoom: 20,
     debug: true,
@@ -95,12 +97,13 @@ var opl = new L.OverPassLayer({
             //         });
             // });
             sleep(1000).then(() => {
+                const Photon_adddress_structure = ['housenumber', 'type', 'street', 'locality', 'city', 'county', 'country'];
                 geocoder.options.geocoder.reverse(l.getCenter(), 90000000, response => {
                     let row = "<tr>";
                     row += "<td>" + l.getCenter().lat.toFixed(6) + "</td><td>" + l.getCenter().lng.toFixed(6) + "</td>";
-                    for (item in response[0].properties.address) {
-                        row += "<td>" + response[0].properties.address[item] + "</td>"
-                        console.log(response[0].properties.address[item]);
+                    for (item in Photon_adddress_structure) {
+                        row += "<td>" + response[0].properties[Photon_adddress_structure[item]] + "</td>"
+                        console.log(response[0].properties[Photon_adddress_structure[item]]);
                     }
                     row += "</tr>";
 
